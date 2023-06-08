@@ -1,19 +1,28 @@
 import { ethers } from "hardhat";
 
+interface ContractInfo {
+  name: string
+  address: string
+}
+
+const contracts = ['Market', 'Tickets', 'VerifiedMinter']
+
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const infoItems: ContractInfo[] = []
+  contracts.forEach(async contractName => {
+    const factory = await ethers.getContractFactory("Lock")
+    const contract = await factory.deploy();
+    await contract.deployed()
 
-  const lockedAmount = ethers.utils.parseEther("0.001");
+    infoItems.push({
+      name: contractName,
+      address: contract.address,
+    })
+  })
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-  await lock.deployed();
-
-  console.log(
-    `Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+  infoItems.forEach(({name, address}) => {
+    console.log(`${name} deployed to ${address}`)
+  })
 }
 
 // We recommend this pattern to be able to use async/await everywhere
